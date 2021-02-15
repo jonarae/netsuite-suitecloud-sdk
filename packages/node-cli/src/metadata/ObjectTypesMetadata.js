@@ -42,6 +42,15 @@ module.exports = [
 		},
 	},
 	{
+		name: 'Center Link',
+		value: {
+			name: 'Center Link',
+			type: 'centerlink',
+			prefix: 'custcenterlink_',
+			hasRelatedFiles: false,
+		},
+	},
+	{
 		name: 'Center Tab',
 		value: {
 			name: 'Center Tab',
@@ -497,6 +506,26 @@ module.exports = [
 			name: 'SDF Installation Script',
 			type: 'sdfinstallationscript',
 			prefix: 'customscript_',
+			hasRelatedFiles: true,
+			relatedFiles: [{ type: 'blankscript' }],
+		},
+	},
+	{
+		name: 'Secret',
+		value: {
+			name: 'Secret',
+			type: 'secret',
+			prefix: 'custsecret_',
+			hasRelatedFiles: true,
+			relatedFiles: false,
+		},
+	},
+	{
+		name: 'Single Page Application',
+		value: {
+			name: 'Single Page Application',
+			type: 'singlepageapp',
+			prefix: 'custspa_',
 			hasRelatedFiles: true,
 			relatedFiles: [{ type: 'blankscript' }],
 		},

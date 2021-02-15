@@ -32,6 +32,9 @@ export const ConsoleLogger = require('@oracle/suitecloud-cli/src/loggers/Console
 export const TranslationService = require('@oracle/suitecloud-cli/src/services/TranslationService');
 export const FileSystemService = require('@oracle/suitecloud-cli/src/services/FileSystemService');
 export const AuthenticationUtils = require('@oracle/suitecloud-cli/src/utils/AuthenticationUtils');
+export const EnvironmentInformationService = require('@oracle/suitecloud-cli/src/services/EnvironmentInformationService');
+export const ProjectInfoServive = require('@oracle/suitecloud-cli/src/services/ProjectInfoService');
+export const FileCabinetService = require('@oracle/suitecloud-cli/src/services/FileCabinetService');
 
 export const FileUtils = require('@oracle/suitecloud-cli/src/utils/FileUtils');
 
@@ -53,4 +56,6 @@ export const InteractiveAnswersValidator: {
 	validateAuthIDNotInList(newAuthID: string, authIDsList: string[]): boolean;
 	validateAlphanumericHyphenUnderscore(fieldValue: string): boolean;
 	validateMaximumLength(fieldValue: string, maxLength: number): boolean;
+	validateNonProductionAccountSpecificDomain(fieldValue: string): boolean;
+	validateNonProductionDomain(fieldValue: string): boolean;
 } = require('@oracle/suitecloud-cli/src/validation/InteractiveAnswersValidator');

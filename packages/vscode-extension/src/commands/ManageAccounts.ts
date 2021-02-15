@@ -6,11 +6,11 @@ import { actionResultStatus, AuthenticationUtils, InteractiveAnswersValidator, A
 import BaseAction from './BaseAction';
 import { window, QuickPickItem, MessageItem } from 'vscode';
 import { AuthListData, ActionResult, AuthenticateActionResult } from '../types/ActionResult';
-import { sdkPath } from '../core/sdksetup/SdkProperties';
+import { getSdkPath } from '../core/sdksetup/SdkProperties';
 import { MANAGE_ACCOUNTS, DISMISS } from '../service/TranslationKeys';
-import VSConsoleLogger from '../loggers/VSConsoleLogger';
+import { PRODUCTION_DOMAIN_REGEX, PRODUCTION_ACCOUNT_SPECIFIC_DOMAIN_REGEX } from '../ApplicationConstants'
 
-const COMMAND_NAME = 'account:setup';
+const COMMAND_NAME = 'manageaccounts';
 
 enum UiOption {
 	new_authid,
@@ -44,10 +44,9 @@ interface CancellationToken {
 }
 
 export default class ManageAccounts extends BaseAction {
-	private log: VSConsoleLogger;
+
 	constructor() {
 		super(COMMAND_NAME);
-		this.log = new VSConsoleLogger();
 	}
 
 	protected validate(): { valid: true } {
@@ -58,7 +57,7 @@ export default class ManageAccounts extends BaseAction {
 	}
 
 	protected async execute() {
-		const accountsPromise = AuthenticationUtils.getAuthIds(sdkPath);
+		const accountsPromise = AuthenticationUtils.getAuthIds(getSdkPath());
 		this.messageService.showStatusBarMessage(this.translationService.getMessage(MANAGE_ACCOUNTS.LOADING), true, accountsPromise);
 		const actionResult: ActionResult<AuthListData> = await accountsPromise;
 
@@ -141,17 +140,20 @@ export default class ManageAccounts extends BaseAction {
 
 	private async handleBrowserAuth(accountCredentialsList: AuthListData) {
 		const authId = await this.getNewAuthId(accountCredentialsList);
-		const url = await this.getUrl();
 		if (!authId) {
 			return;
 		}
+		const url = await this.getUrl();
 		const commandParams: { authid: string; dev: boolean; url?: string } = {
 			authid: authId,
 			dev: false,
 		};
+		if (url === undefined) {
+			return;
+		}
 		if (url) {
 			commandParams.url = url;
-			commandParams.dev = url !== ApplicationConstants.PROD_ENVIRONMENT_ADDRESS;
+			commandParams.dev = !url.match(PRODUCTION_DOMAIN_REGEX) && !url.match(PRODUCTION_ACCOUNT_SPECIFIC_DOMAIN_REGEX);
 		}
 
 		let cancellationToken: CancellationToken = {};
@@ -167,7 +169,7 @@ export default class ManageAccounts extends BaseAction {
 		// This will start the execution in the background and initialize cancellationToken.cancel method
 		const authenticatePromise: Promise<AuthenticateActionResult> = AuthenticationUtils.authenticateWithOauth(
 			commandParams,
-			sdkPath,
+			getSdkPath(),
 			this.executionPath,
 			cancellationToken
 		);
@@ -184,20 +186,7 @@ export default class ManageAccounts extends BaseAction {
 		this.messageService.showStatusBarMessage(this.translationService.getMessage(MANAGE_ACCOUNTS.CREATE.CONTINUE_IN_BROWSER), true, authenticatePromise);
 
 		const actionResult = await authenticatePromise;
-		if (actionResult.status === actionResultStatus.SUCCESS) {
-			this.log.result(
-				this.translationService.getMessage(
-					MANAGE_ACCOUNTS.CREATE.SAVE_TOKEN.SUCCESS.NEW_TBA,
-					actionResult.accountInfo.companyName,
-					actionResult.accountInfo.roleName,
-					actionResult.authId
-				)
-			);
-			this.messageService.showCommandInfo(this.translationService.getMessage(MANAGE_ACCOUNTS.SELECT_AUTH_ID.SUCCESS, actionResult.authId));
-		} else {
-			actionResult.errorMessages.forEach((e) => this.log.error(e));
-			this.messageService.showCommandError();
-		}
+		this.handleAuthenticateActionResult(actionResult);
 	}
 
 	private async getNewAuthId(accountCredentialsList: AuthListData) {
@@ -225,9 +214,13 @@ export default class ManageAccounts extends BaseAction {
 			validateInput: (fieldValue) => {
 				let validationResult = InteractiveAnswersValidator.showValidationResults(
 					fieldValue,
-					InteractiveAnswersValidator.validateFieldIsNotEmpty,
-					InteractiveAnswersValidator.validateFieldHasNoSpaces
+					InteractiveAnswersValidator.validateFieldHasNoSpaces,
+					InteractiveAnswersValidator.validateNonProductionDomain,
+					InteractiveAnswersValidator.validateNonProductionAccountSpecificDomain
 				);
+				if (!fieldValue) {
+					fieldValue = ApplicationConstants.PROD_ENVIRONMENT_ADDRESS
+				}
 				return typeof validationResult === 'string' ? validationResult : null;
 			},
 		});
@@ -239,7 +232,7 @@ export default class ManageAccounts extends BaseAction {
 			ignoreFocusOut: true,
 			validateInput: (fieldValue) => {
 				let validationResult = InteractiveAnswersValidator.showValidationResults(
-					fieldValue, 
+					fieldValue,
 					InteractiveAnswersValidator.validateFieldIsNotEmpty,
 					InteractiveAnswersValidator.validateFieldHasNoSpaces,
 					InteractiveAnswersValidator.validateAlphanumericHyphenUnderscore
@@ -256,7 +249,7 @@ export default class ManageAccounts extends BaseAction {
 			password: true,
 			validateInput: (fieldValue) => {
 				let validationResult = InteractiveAnswersValidator.showValidationResults(
-					fieldValue, 
+					fieldValue,
 					InteractiveAnswersValidator.validateFieldIsNotEmpty
 				);
 				return typeof validationResult === 'string' ? validationResult : null;
@@ -271,7 +264,7 @@ export default class ManageAccounts extends BaseAction {
 			password: true,
 			validateInput: (fieldValue) => {
 				let validationResult = InteractiveAnswersValidator.showValidationResults(
-					fieldValue, 
+					fieldValue,
 					InteractiveAnswersValidator.validateFieldIsNotEmpty
 				);
 				return typeof validationResult === 'string' ? validationResult : null;
@@ -281,13 +274,30 @@ export default class ManageAccounts extends BaseAction {
 
 	private async handleSaveToken(accountCredentialsList: AuthListData) {
 		const authId = await this.getNewAuthId(accountCredentialsList);
-		const url = await this.getUrl();
-		const accountId = await this.getAccountId();
-		const tokenId = await this.getTokenId();
-		const tokenSecret = await this.getTokenSecret();
-		if (!authId || !accountId || !tokenId || !tokenSecret) {
+		if (!authId) {
 			return;
 		}
+
+		const url = await this.getUrl();
+		if (url === undefined) {
+			return;
+		}
+
+		const accountId = await this.getAccountId();
+		if (!accountId) {
+			return;
+		}
+
+		const tokenId = await this.getTokenId();
+		if (!tokenId) {
+			return;
+		}
+
+		const tokenSecret = await this.getTokenSecret();
+		if (!tokenSecret) {
+			return;
+		}
+
 		const commandParams: { authid: string; account: string; tokenid: string; tokensecret: string; dev: boolean; url?: string } = {
 			authid: authId,
 			dev: false,
@@ -297,16 +307,19 @@ export default class ManageAccounts extends BaseAction {
 		};
 		if (url) {
 			commandParams.url = url;
-			commandParams.dev = url !== ApplicationConstants.PROD_ENVIRONMENT_ADDRESS;
+			commandParams.dev = !url.match(PRODUCTION_DOMAIN_REGEX) && !url.match(PRODUCTION_ACCOUNT_SPECIFIC_DOMAIN_REGEX);
 		}
 
-		const saveTokenPromise = AuthenticationUtils.saveToken(commandParams, sdkPath, this.executionPath);
-
+		const saveTokenPromise = AuthenticationUtils.saveToken(commandParams, getSdkPath(), this.executionPath);
 		this.messageService.showStatusBarMessage(this.translationService.getMessage(MANAGE_ACCOUNTS.CREATE.SAVE_TOKEN.SAVING_TBA), true, saveTokenPromise);
 
 		const actionResult: AuthenticateActionResult = await saveTokenPromise;
+		this.handleAuthenticateActionResult(actionResult);
+	}
+
+	private handleAuthenticateActionResult(actionResult: AuthenticateActionResult): void {
 		if (actionResult.status === actionResultStatus.SUCCESS) {
-			this.log.result(
+			this.vsConsoleLogger.result(
 				this.translationService.getMessage(
 					MANAGE_ACCOUNTS.CREATE.SAVE_TOKEN.SUCCESS.NEW_TBA,
 					actionResult.accountInfo.companyName,
@@ -316,9 +329,11 @@ export default class ManageAccounts extends BaseAction {
 			);
 			this.messageService.showCommandInfo(this.translationService.getMessage(MANAGE_ACCOUNTS.SELECT_AUTH_ID.SUCCESS, actionResult.authId));
 		} else {
-			actionResult.errorMessages.forEach((e) => this.log.error(e));
+			actionResult.errorMessages.forEach((e) => this.vsConsoleLogger.error(e));
 			this.messageService.showCommandError();
 		}
+
+		this.vsConsoleLogger.info("");
 	}
 
 	private handleSelectedAuth(authId: string) {
@@ -326,12 +341,15 @@ export default class ManageAccounts extends BaseAction {
 			this.messageService.showErrorMessage(this.translationService.getMessage(MANAGE_ACCOUNTS.ERROR.NOT_IN_PROJECT));
 			return;
 		}
+
 		try {
 			AuthenticationUtils.setDefaultAuthentication(this.executionPath, authId);
-			this.messageService.showStatusBarMessage(this.translationService.getMessage(MANAGE_ACCOUNTS.SELECT_AUTH_ID.SUCCESS, authId));
-			return;
+			this.vsConsoleLogger.result(this.translationService.getMessage(MANAGE_ACCOUNTS.SELECT_AUTH_ID.SUCCESS, authId));
+			this.messageService.showCommandInfo(this.translationService.getMessage(MANAGE_ACCOUNTS.SELECT_AUTH_ID.SUCCESS, authId));
 		} catch (e) {
 			this.messageService.showErrorMessage(e);
 		}
+
+		this.vsConsoleLogger.info("");
 	}
 }

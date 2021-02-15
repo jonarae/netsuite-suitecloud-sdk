@@ -4,11 +4,12 @@
  */
 import * as path from 'path';
 import { window } from 'vscode';
-import { ERRORS, YES, NO, UPDATE_OBJECT } from '../service/TranslationKeys';
-import { actionResultStatus } from '../util/ExtensionUtil';
+import { ERRORS, YES, NO, UPDATE_OBJECT, COMMAND } from '../service/TranslationKeys';
+import { ProjectInfoServive, actionResultStatus } from '../util/ExtensionUtil';
 import BaseAction from './BaseAction';
+import { OBJECTS_FOLDER } from '../ApplicationConstants';
 
-const COMMAND_NAME = 'object:update';
+const COMMAND_NAME = 'updateobject';
 const STATUS = {
 	SUCCESS: 'SUCCESS',
 	ERROR: 'ERROR',
@@ -38,14 +39,14 @@ export default class UpdateObject extends BaseAction {
 			return;
 		}
 
+		const commandMessage = this.translationService.getMessage(COMMAND.TRIGGERED, this.vscodeCommandName);
 		const statusBarMessage = this.translationService.getMessage(UPDATE_OBJECT.UPDATING);
-
 		const commandActionPromise = this.runSuiteCloudCommand({ scriptid: scriptId });
-		this.messageService.showStatusBarMessage(statusBarMessage, true, commandActionPromise);
+		this.messageService.showInformationMessage(commandMessage, statusBarMessage, commandActionPromise);
 
 		const actionResult = await commandActionPromise;
 		if (actionResult.status === actionResultStatus.SUCCESS && actionResult.data.length === 1 && actionResult.data[0].type === STATUS.SUCCESS) {
-			this.messageService.showInformationMessage(this.translationService.getMessage(UPDATE_OBJECT.SUCCESS));
+			this.messageService.showCommandInfo();
 		} else {
 			this.messageService.showCommandError();
 		}
@@ -65,9 +66,28 @@ export default class UpdateObject extends BaseAction {
 				message: this.translationService.getMessage(ERRORS.NO_ACTIVE_WORKSPACE),
 			};
 		} else {
-			return {
-				valid: true,
-			};
+			const projectFolderPath = this.getProjectFolderPath();
+			const projectInfoService = new ProjectInfoServive(projectFolderPath);
+			try {
+				if (projectInfoService.isAccountCustomizationProject() || projectInfoService.isSuiteAppProject()) {
+					const relativePath = path.relative(projectFolderPath, activeFile.fsPath);
+					if (!relativePath.startsWith(OBJECTS_FOLDER + path.sep)) {
+						return {
+							valid: false,
+							message: this.translationService.getMessage(UPDATE_OBJECT.ERROR.SDF_OBJECT_MUST_BE_IN_OBJECTS_FOLDER),
+						}
+					}
+				}
+
+				return {
+					valid: true,
+				};
+			} catch (e) {
+				return {
+					valid: false,
+					message: e.getErrorMessage(),
+				}
+			}
 		}
 	}
 }

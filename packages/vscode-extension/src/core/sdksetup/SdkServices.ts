@@ -11,11 +11,11 @@ import * as http from 'http';
 import { homedir } from 'os';
 import { parse } from 'url';
 import { VSTranslationService } from '../../service/VSTranslationService';
-import { EXTENSION_INSTALLATION } from '../../service/TranslationKeys';
+import { ERRORS, EXTENSION_INSTALLATION } from '../../service/TranslationKeys';
 import MessageService from '../../service/MessageService';
 import { validateSdk } from './SdkValidator';
-import { FileSystemService } from '../../util/ExtensionUtil';
-import { SDK_DOWNLOAD_URL, SDK_FILENAME, SUITECLOUD_FOLDER, VSCODE_SDK_FOLDER, sdkPath } from './SdkProperties';
+import { ApplicationConstants, EnvironmentInformationService, FileSystemService } from '../../util/ExtensionUtil';
+import { getSdkDownloadFullUrl, getSdkPath, getSdkFilename, SUITECLOUD_FOLDER, VSCODE_SDK_FOLDER } from './SdkProperties';
 
 const VALID_JAR_CONTENT_TYPES = ['application/java-archive', 'application/x-java-archive', 'application/x-jar'];
 
@@ -24,18 +24,39 @@ const translationService = new VSTranslationService();
 const fileSystemService = new FileSystemService();
 
 export async function installIfNeeded() {
-	if (!fs.existsSync(path.join(sdkPath)) || !(await validateSdk(path.join(sdkPath)))) {
+	validateJavaVersion();
+
+	if (!fs.existsSync(path.join(getSdkPath())) || !(await validateSdk(path.join(getSdkPath())))) {
 		await install();
 	}
+}
+
+function validateJavaVersion() {
+	const environmentInformationService = new EnvironmentInformationService();
+	const installedJavaVersion = environmentInformationService.getInstalledJavaVersionString();
+	const requiredJavaVersion = `${ApplicationConstants.SDK_REQUIRED_JAVA_VERSION}`;
+	if (installedJavaVersion.startsWith(requiredJavaVersion)) {
+		return;
+	}
+
+	let errorMessage;
+	if (installedJavaVersion === '') {
+		errorMessage = translationService.getMessage(`${ERRORS.SDK_JAVA_VERSION_NOT_INSTALLED}`, requiredJavaVersion);
+		messageService.showErrorMessage(errorMessage);
+		throw errorMessage;
+	}
+	errorMessage = translationService.getMessage(`${ERRORS.SDK_JAVA_VERSION_NOT_COMPATIBLE}`, installedJavaVersion, requiredJavaVersion);
+	messageService.showErrorMessage(errorMessage);
+	throw errorMessage;
 }
 
 async function install() {
 	const sdkParentDirectory = fileSystemService.createFolder(homedir(), SUITECLOUD_FOLDER);
 	const sdkDirectory = fileSystemService.createFolder(sdkParentDirectory, VSCODE_SDK_FOLDER);
-	const fullURL = `${SDK_DOWNLOAD_URL}/${SDK_FILENAME}`;
+	const fullUrl = getSdkDownloadFullUrl();
 
 	try {
-		const downloadFilePromise = downloadFile(fullURL, sdkDirectory);
+		const downloadFilePromise = downloadFile(fullUrl, sdkDirectory);
 		messageService.showInformationMessage(
 			translationService.getMessage(EXTENSION_INSTALLATION.IN_PROGRESS),
 			translationService.getMessage(EXTENSION_INSTALLATION.IN_PROGRESS),
@@ -44,13 +65,13 @@ async function install() {
 		await downloadFilePromise;
 		messageService.showInformationMessage(translationService.getMessage(EXTENSION_INSTALLATION.SUCCESS.SDK_DOWNLOADED));
 	} catch (error) {
-		messageService.showErrorMessage(translationService.getMessage(EXTENSION_INSTALLATION.ERROR.GENERAL_ERROR, fullURL, error));
+		messageService.showErrorMessage(translationService.getMessage(EXTENSION_INSTALLATION.ERROR.GENERAL_ERROR, fullUrl, error));
 		throw error;
 	}
 }
 
 async function downloadFile(url: string, sdkDirectory: string) {
-	const sdkDestinationFile = path.join(sdkDirectory, SDK_FILENAME);
+	const sdkDestinationFile = path.join(sdkDirectory, getSdkFilename());
 	const parsedUrl = parse(url);
 
 	removeJarFilesFrom(sdkDirectory);

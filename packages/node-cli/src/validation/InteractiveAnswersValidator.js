@@ -149,4 +149,16 @@ module.exports = {
 			? VALIDATION_RESULT_SUCCESS
 			: VALIDATION_RESULT_FAILURE(NodeTranslationService.getMessage(ANSWERS_VALIDATION_MESSAGES.MAX_LENGTH, maxLength));
 	},
+
+	validateNonProductionDomain(fieldValue) {
+		return !fieldValue.match(ApplicationConstants.PRODUCTION_DOMAIN_REGEX)
+			? VALIDATION_RESULT_SUCCESS
+			: VALIDATION_RESULT_FAILURE(NodeTranslationService.getMessage(ANSWERS_VALIDATION_MESSAGES.PRODUCTION_DOMAIN));
+	},
+
+	validateNonProductionAccountSpecificDomain(fieldValue) {
+		return !fieldValue.match(ApplicationConstants.PRODUCTION_ACCOUNT_SPECIFIC_DOMAIN_REGEX)
+			? VALIDATION_RESULT_SUCCESS
+			: VALIDATION_RESULT_FAILURE(NodeTranslationService.getMessage(ANSWERS_VALIDATION_MESSAGES.PRODUCTION_DOMAIN));
+	}
 };
