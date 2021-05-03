@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 import * as path from 'path';
@@ -41,7 +41,7 @@ export default class UpdateObject extends BaseAction {
 
 		const commandMessage = this.translationService.getMessage(COMMAND.TRIGGERED, this.vscodeCommandName);
 		const statusBarMessage = this.translationService.getMessage(UPDATE_OBJECT.UPDATING);
-		const commandActionPromise = this.runSuiteCloudCommand({ scriptid: scriptId });
+		const commandActionPromise = this.runSuiteCloudCommand({ scriptid: [scriptId] });
 		this.messageService.showInformationMessage(commandMessage, statusBarMessage, commandActionPromise);
 
 		const actionResult = await commandActionPromise;
@@ -75,7 +75,7 @@ export default class UpdateObject extends BaseAction {
 						return {
 							valid: false,
 							message: this.translationService.getMessage(UPDATE_OBJECT.ERROR.SDF_OBJECT_MUST_BE_IN_OBJECTS_FOLDER),
-						}
+						};
 					}
 				}
 
@@ -86,7 +86,7 @@ export default class UpdateObject extends BaseAction {
 				return {
 					valid: false,
 					message: e.getErrorMessage(),
-				}
+				};
 			}
 		}
 	}

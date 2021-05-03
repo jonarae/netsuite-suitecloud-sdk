@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 'use strict';
@@ -7,7 +7,7 @@
 const path = require('path');
 const BaseAction = require('../../base/BaseAction');
 const { saveToken } = require('../../../utils/AuthenticationUtils');
-const { PROD_ENVIRONMENT_ADDRESS } = require('../../../ApplicationConstants');
+const { DOMAIN: { PRODUCTION: {GENERIC_NETSUITE_DOMAIN} } } = require('../../../ApplicationConstants');
 const CommandOptionsValidator = require('../../../core/CommandOptionsValidator');
 const ValidationErrorsFormatter = require('../../../utils/ValidationErrorsFormatter');
 const NodeTranslationService = require('../../../services/NodeTranslationService');
@@ -74,12 +74,12 @@ module.exports = class AccountSaveTokenAction extends BaseAction {
 			throw new CLIException(ValidationErrorsFormatter.formatErrors(validationErrors));
 		}
 		// If url is system.netsuite.com, we must not pass it to the sdk. If it's anything else, we must add developmentMode flag
-		if (params[COMMAND.OPTIONS.URL] === PROD_ENVIRONMENT_ADDRESS) {
+		if (params[COMMAND.OPTIONS.URL] === GENERIC_NETSUITE_DOMAIN) {
 			delete params[COMMAND.OPTIONS.URL];
 		} else if (params[COMMAND.OPTIONS.URL]) {
 			params[COMMAND.OPTIONS.DEV] = true;
 		}
-		return await saveToken(params, this._sdkPath, this._executionPath);
+		return await saveToken(params, this._sdkPath, this._executionPath, this._executionEnvironmentContext);
 
 	}
 

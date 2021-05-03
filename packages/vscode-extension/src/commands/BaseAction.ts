@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 
@@ -50,7 +50,7 @@ export default abstract class BaseAction {
 		}
 	}
 
-	protected async runSuiteCloudCommand(args: { [key: string]: string } = {}) {
+	protected async runSuiteCloudCommand(args: { [key: string]: string | string[] } = {}) {
 		const suiteCloudRunnerRunResult = await new SuiteCloudRunner(this.vsConsoleLogger, this.executionPath).run({
 			commandName: this.cliCommandName,
 			arguments: args,

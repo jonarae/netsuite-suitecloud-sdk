@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 'use strict';
@@ -22,7 +22,7 @@ module.exports = class SetupAction extends BaseAction {
 	async execute(params) {
 		try {
 			if (params.mode === AUTH_MODE.OAUTH) {
-				return await authenticateWithOauth(params, this._sdkPath, this._executionPath);
+				return await authenticateWithOauth(params, this._sdkPath, this._executionPath, this._executionEnvironmentContext);
 			} else if (params.mode === AUTH_MODE.SAVE_TOKEN) {
 				return await saveToken(params, this._sdkPath, this._executionPath);
 			} else if (params.mode === AUTH_MODE.REUSE) {

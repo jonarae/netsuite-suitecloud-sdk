@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 import { actionResultStatus, AuthenticationUtils, InteractiveAnswersValidator, ApplicationConstants } from '../util/ExtensionUtil';
@@ -8,7 +8,8 @@ import { window, QuickPickItem, MessageItem } from 'vscode';
 import { AuthListData, ActionResult, AuthenticateActionResult } from '../types/ActionResult';
 import { getSdkPath } from '../core/sdksetup/SdkProperties';
 import { MANAGE_ACCOUNTS, DISMISS } from '../service/TranslationKeys';
-import { PRODUCTION_DOMAIN_REGEX, PRODUCTION_ACCOUNT_SPECIFIC_DOMAIN_REGEX } from '../ApplicationConstants'
+import * as fs from 'fs';
+import * as path from 'path';
 
 const COMMAND_NAME = 'manageaccounts';
 
@@ -44,15 +45,34 @@ interface CancellationToken {
 }
 
 export default class ManageAccounts extends BaseAction {
-
 	constructor() {
 		super(COMMAND_NAME);
 	}
 
-	protected validate(): { valid: true } {
-		// ManageAccount can be executed anywhere. We don't need to be in a project folder
+	protected validate(): { valid: false; message: string } | { valid: true } {
+		const superValidation = super.validate();
+		if (!superValidation.valid) {
+			return superValidation;
+		}
+
+		const projectFolder: string = this.getProjectFolderPath();
+		const manifestFileLocation: string = path.join(projectFolder, ApplicationConstants.FILES.MANIFEST_XML);
+		const manifestFileExists: boolean = fs.existsSync(manifestFileLocation);
+
+		if (manifestFileExists) {
+			return {
+				valid: true,
+			};
+		}
+
 		return {
-			valid: true,
+			valid: false,
+			message: this.translationService.getMessage(
+				MANAGE_ACCOUNTS.ERROR.MISSING_MANIFEST,
+				manifestFileLocation,
+				this.vscodeCommandName,
+				ApplicationConstants.LINKS.INFO.PROJECT_STRUCTURE
+			),
 		};
 	}
 
@@ -153,7 +173,7 @@ export default class ManageAccounts extends BaseAction {
 		}
 		if (url) {
 			commandParams.url = url;
-			commandParams.dev = !url.match(PRODUCTION_DOMAIN_REGEX) && !url.match(PRODUCTION_ACCOUNT_SPECIFIC_DOMAIN_REGEX);
+			commandParams.dev = !url.match(`^${ApplicationConstants.DOMAIN.PRODUCTION.GENERIC_NETSUITE_DOMAIN}$`);
 		}
 
 		let cancellationToken: CancellationToken = {};
@@ -219,7 +239,7 @@ export default class ManageAccounts extends BaseAction {
 					InteractiveAnswersValidator.validateNonProductionAccountSpecificDomain
 				);
 				if (!fieldValue) {
-					fieldValue = ApplicationConstants.PROD_ENVIRONMENT_ADDRESS
+					fieldValue = ApplicationConstants.DOMAIN.PRODUCTION.GENERIC_NETSUITE_DOMAIN;
 				}
 				return typeof validationResult === 'string' ? validationResult : null;
 			},
@@ -303,11 +323,11 @@ export default class ManageAccounts extends BaseAction {
 			dev: false,
 			account: accountId,
 			tokenid: tokenId,
-			tokensecret: tokenSecret
+			tokensecret: tokenSecret,
 		};
 		if (url) {
 			commandParams.url = url;
-			commandParams.dev = !url.match(PRODUCTION_DOMAIN_REGEX) && !url.match(PRODUCTION_ACCOUNT_SPECIFIC_DOMAIN_REGEX);
+			commandParams.dev = !url.match(`^${ApplicationConstants.DOMAIN.PRODUCTION.GENERIC_NETSUITE_DOMAIN}$`);
 		}
 
 		const saveTokenPromise = AuthenticationUtils.saveToken(commandParams, getSdkPath(), this.executionPath);
@@ -333,7 +353,7 @@ export default class ManageAccounts extends BaseAction {
 			this.messageService.showCommandError();
 		}
 
-		this.vsConsoleLogger.info("");
+		this.vsConsoleLogger.info('');
 	}
 
 	private handleSelectedAuth(authId: string) {
@@ -350,6 +370,6 @@ export default class ManageAccounts extends BaseAction {
 			this.messageService.showErrorMessage(e);
 		}
 
-		this.vsConsoleLogger.info("");
+		this.vsConsoleLogger.info('');
 	}
 }

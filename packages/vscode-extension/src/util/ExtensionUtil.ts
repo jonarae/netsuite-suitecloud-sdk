@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 import * as vscode from 'vscode';
@@ -16,6 +16,7 @@ export function getRootProjectFolder(fsPath?: string): string | undefined {
 }
 
 export const ApplicationConstants = require('@oracle/suitecloud-cli/src/ApplicationConstants');
+export const ExecutionEnvironmentContext = require('@oracle/suitecloud-cli/src/ExecutionEnvironmentContext');
 
 export const actionResultStatus: {
 	SUCCESS: string;
@@ -26,15 +27,14 @@ export const CommandActionExecutor = require('@oracle/suitecloud-cli/src/core/Co
 export const CommandsMetadataService = require('@oracle/suitecloud-cli/src/core/CommandsMetadataService');
 export const CommandOptionsValidator = require('@oracle/suitecloud-cli/src/core/CommandOptionsValidator');
 export const CLIConfigurationService = require('@oracle/suitecloud-cli/src/core/extensibility/CLIConfigurationService');
-
 export const ConsoleLogger = require('@oracle/suitecloud-cli/src/loggers/ConsoleLogger');
-
-export const TranslationService = require('@oracle/suitecloud-cli/src/services/TranslationService');
-export const FileSystemService = require('@oracle/suitecloud-cli/src/services/FileSystemService');
-export const AuthenticationUtils = require('@oracle/suitecloud-cli/src/utils/AuthenticationUtils');
+export const AccountFileCabinetService = require('@oracle/suitecloud-cli/src/services/AccountFileCabinetService');
 export const EnvironmentInformationService = require('@oracle/suitecloud-cli/src/services/EnvironmentInformationService');
-export const ProjectInfoServive = require('@oracle/suitecloud-cli/src/services/ProjectInfoService');
 export const FileCabinetService = require('@oracle/suitecloud-cli/src/services/FileCabinetService');
+export const FileSystemService = require('@oracle/suitecloud-cli/src/services/FileSystemService');
+export const ProjectInfoServive = require('@oracle/suitecloud-cli/src/services/ProjectInfoService');
+export const TranslationService = require('@oracle/suitecloud-cli/src/services/TranslationService');
+export const AuthenticationUtils = require('@oracle/suitecloud-cli/src/utils/AuthenticationUtils');
 
 export const FileUtils = require('@oracle/suitecloud-cli/src/utils/FileUtils');
 

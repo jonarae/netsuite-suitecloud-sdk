@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 'use strict';
@@ -16,7 +16,8 @@ module.exports = class BaseAction {
 		this._log = options.log;
 		this._sdkPath = options.sdkPath;
 
-		this._sdkExecutor = new SdkExecutor(this._sdkPath);
+		this._executionEnvironmentContext = options.executionEnvironmentContext;
+		this._sdkExecutor = new SdkExecutor(this._sdkPath, this._executionEnvironmentContext);
 	}
 
 	async preExecute(params) {

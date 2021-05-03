@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 'use strict';
@@ -13,6 +13,7 @@ const { lineBreak } = require('../loggers/LoggerConstants');
 const ActionResultUtils = require('../utils/ActionResultUtils');
 const { unwrapExceptionMessage, unwrapInformationMessage } = require('../utils/ExceptionUtils');
 const { getProjectDefaultAuthId } = require('../utils/AuthenticationUtils');
+const ExecutionEnvironmentContext = require('../ExecutionEnvironmentContext');
 
 module.exports = class CommandActionExecutor {
 	constructor(dependencies) {
@@ -27,6 +28,12 @@ module.exports = class CommandActionExecutor {
 		this._commandsMetadataService = dependencies.commandsMetadataService;
 		this._log = dependencies.log;
 		this._sdkPath = dependencies.sdkPath;
+
+		if (!dependencies.executionEnvironmentContext) {
+			this._executionEnvironmentContext = new ExecutionEnvironmentContext();
+		} else {
+			this._executionEnvironmentContext = dependencies.executionEnvironmentContext;
+		}
 	}
 
 	async executeAction(context) {
@@ -112,7 +119,6 @@ module.exports = class CommandActionExecutor {
 	}
 
 	_getCommand(runInInteractiveMode, projectFolder, commandMetadata) {
-
 		const commandPath = commandMetadata.generator;
 		const commandGenerator = require(commandPath);
 		if (!commandGenerator) {
@@ -125,6 +131,7 @@ module.exports = class CommandActionExecutor {
 			runInInteractiveMode: runInInteractiveMode,
 			log: this._log,
 			sdkPath: this._sdkPath,
+			executionEnvironmentContext: this._executionEnvironmentContext,
 		});
 	}
 

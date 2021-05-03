@@ -1,7 +1,7 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
- ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
- */
+** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+*/
 'use strict';
 
 const fs = require('fs');
@@ -12,7 +12,7 @@ const Path = require('path');
 
 class FileUtils {
 	create(fileName, object) {
-		const content = JSON.stringify(object);
+		const content = JSON.stringify(object, null,'\t');
 
 		fs.writeFileSync(fileName, content, UTF8, function (error) {
 			if (error) {

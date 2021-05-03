@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 'use strict';
@@ -76,7 +76,7 @@ module.exports = class ImportObjectsAction extends BaseAction {
 					delete params[ANSWERS_NAMES.IMPORT_REFERENCED_SUITESCRIPTS];
 				}
 
-				scriptIdArray = params[ANSWERS_NAMES.SCRIPT_ID].split(' ');
+				scriptIdArray = params[ANSWERS_NAMES.SCRIPT_ID];
 			} else {
 				if (params[COMMAND_FLAGS.EXCLUDE_FILES]) {
 					flags.push(COMMAND_FLAGS.EXCLUDE_FILES);
@@ -90,7 +90,7 @@ module.exports = class ImportObjectsAction extends BaseAction {
 						scriptIdArray = (await this._getAllScriptIdsForObjectType(params)).map((el) => el.scriptId);
 					}
 				} else {
-					scriptIdArray = params[ANSWERS_NAMES.SCRIPT_ID].split(' ');
+					scriptIdArray = params[ANSWERS_NAMES.SCRIPT_ID];
 				}
 
 				this._log.info(NodeTranslationService.getMessage(WARNINGS.OVERRIDE));
@@ -117,7 +117,7 @@ module.exports = class ImportObjectsAction extends BaseAction {
 					.addParam(ANSWERS_NAMES.SCRIPT_ID, partialScriptIdsString)
 					.build();
 
-				const sdkExecutor = new SdkExecutor(this._sdkPath);
+				const sdkExecutor = new SdkExecutor(this._sdkPath, this._executionEnvironmentContext);
 				arrayOfPromises.push(
 					sdkExecutor
 						.execute(partialExecutionContextForImportObjects)
@@ -137,7 +137,7 @@ module.exports = class ImportObjectsAction extends BaseAction {
 				message: NodeTranslationService.getMessage(MESSAGES.IMPORTING_OBJECTS, numberOfSteps, numberOfSteps),
 			});
 			// At this point, the OperationResult will never be an error. It's handled before
-			return ActionResult.Builder.withData(operationResultData).build();
+			return ActionResult.Builder.withData(operationResultData).withResultMessage(operationResultData.resultMessage).build();
 		} catch (error) {
 			return ActionResult.Builder.withErrors([error]).build();
 		}
@@ -165,6 +165,9 @@ module.exports = class ImportObjectsAction extends BaseAction {
 						partialOperationResult.data.successfulImports
 					);
 				}
+			}
+			if (partialOperationResult.resultMessage){
+				this.operationResultData.resultMessage = partialOperationResult.resultMessage;
 			}
 		}
 	}

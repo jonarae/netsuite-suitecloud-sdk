@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 'use strict';
@@ -115,7 +115,7 @@ module.exports = class UpdateInputHandler extends BaseInputHandler {
 
 		return {
 			[ANSWERS_NAMES.OVERWRITE_OBJECTS]: answers[ANSWERS_NAMES.OVERWRITE_OBJECTS],
-			[COMMAND_OPTIONS.SCRIPT_ID]: [...new Set(answers[ANSWERS_NAMES.SCRIPT_ID_LIST])].join(' '),
+			[COMMAND_OPTIONS.SCRIPT_ID]: answers[ANSWERS_NAMES.SCRIPT_ID_LIST],
 		};
 	}
 };

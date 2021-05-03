@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 import * as path from 'path';
@@ -8,7 +8,7 @@ import { COMMAND, UPLOAD_FILE, ERRORS, YES, NO } from '../service/TranslationKey
 import { ApplicationConstants, CLIConfigurationService, FileCabinetService, ProjectInfoServive, actionResultStatus } from '../util/ExtensionUtil';
 import BaseAction from './BaseAction';
 
-const COMMAND_NAME = 'uploadfile'
+const COMMAND_NAME = 'uploadfile';
 
 export default class UploadFile extends BaseAction {
 	constructor() {
@@ -42,7 +42,7 @@ export default class UploadFile extends BaseAction {
 		const commandMessage = this.translationService.getMessage(COMMAND.TRIGGERED, this.vscodeCommandName);
 		const statusBarMessage = this.translationService.getMessage(UPLOAD_FILE.UPLOADING);
 
-		const commandActionPromise = this.runSuiteCloudCommand({ paths: relativePath });
+		const commandActionPromise = this.runSuiteCloudCommand({ paths: [relativePath] });
 		this.messageService.showInformationMessage(commandMessage, statusBarMessage, commandActionPromise);
 
 		const actionResult = await commandActionPromise;
@@ -76,7 +76,7 @@ export default class UploadFile extends BaseAction {
 						return {
 							valid: false,
 							message: this.translationService.getMessage(UPLOAD_FILE.ERROR.UPLOAD_FILE_FOLDER_RESTRICTION),
-						}
+						};
 					}
 				}
 
@@ -87,9 +87,8 @@ export default class UploadFile extends BaseAction {
 				return {
 					valid: false,
 					message: e.getErrorMessage(),
-				}
+				};
 			}
 		}
 	}
-
 }

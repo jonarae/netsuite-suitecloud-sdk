@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
 ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 */
 'use strict';
@@ -109,7 +109,7 @@ module.exports = class TemplatesCompiler {
 	_writeJavascriptLibsFile() {
 		// create javascript-libs.js
 		let content = '';
-		['LoadTemplateSafe', 'Handlebars.CompilerNameLookup'].map(filename => {
+		['Handlebars.CompilerNameLookup'].forEach(filename => {
 			content += fs
 				.readFileSync(path.join(__dirname, '../../src/client-scripts', filename + '.js'))
 				.toString();

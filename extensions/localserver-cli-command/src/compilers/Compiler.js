@@ -1,5 +1,5 @@
 /*
- ** Copyright (c) 2020 Oracle and/or its affiliates.  All rights reserved.
+ ** Copyright (c) 2021 Oracle and/or its affiliates.  All rights reserved.
  ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 'use strict';
@@ -45,7 +45,7 @@ module.exports = class Compiler {
 	}
 
 	_createRequireJSFile(localFolder) {
-		const src = require.resolve('requirejs');
+		const src = require.resolve('../client-scripts/ModuleLoader');
 		const dst = path.join(localFolder, 'require.js');
 
 		let content = fs.readFileSync(src).toString();

@@ -1,10 +1,19 @@
 {
-	"name": "@oracle/suitecloud-vscode-extension",
-	"displayName": "suitecloud-vscode-extension",
-	"description": "netsuite suitecloud vscode extension based on nodejs-cli",
+	"name": "suitecloud-vscode-extension",
+	"displayName": "SuiteCloud Extension for Visual Studio Code",
+	"description": "Develop and deploy SuiteCloud Projects with SuiteCloud Development Framework (SDF).",
+	"keywords": [
+		"NetSuite",
+		"SDF",
+		"SuiteApp",
+		"SuiteCloud",
+		"SuiteScripts"
+	],
 	"publisher": "Oracle",
+	"license": "UPL-1.0",
 	"private": true,
 	"version": "0.0.1",
+	"icon": "resources/pluginIcon_dark.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/oracle/netsuite-suitecloud-sdk",
@@ -36,13 +45,13 @@
 				"category": "SuiteCloud"
 			},
 			{
-				"command": "suitecloud.listobjects",
-				"title": "List Objects",
+				"command": "suitecloud.listfiles",
+				"title": "List Files",
 				"category": "SuiteCloud"
 			},
 			{
-				"command": "suitecloud.uploadfile",
-				"title": "Upload File",
+				"command": "suitecloud.listobjects",
+				"title": "List Objects",
 				"category": "SuiteCloud"
 			},
 			{
@@ -72,7 +81,11 @@
 			},
 			{
 				"command": "suitecloud.comparefile",
-				"title": "Compare Custom File with Account copy",
+				"title": "Compare Custom File with Account copy"
+			},
+			{
+				"command": "suitecloud.uploadfile",
+				"title": "Upload File",
 				"category": "SuiteCloud"
 			}
 		],
@@ -80,13 +93,13 @@
 			{
 				"command": "suitecloud.adddependencies",
 				"key": "ctrl+alt+shift+a",
-				"mac": "ctrl+alt+shift+a"
+				"mac": "ctrl+alt+cmd+a"
 			},
 			{
 				"command": "suitecloud.deploy",
 				"key": "ctrl+alt+d",
-				"mac": "ctrl+alt+d",
-				"linux": "meta+alt+d"
+				"mac": "ctrl+alt+cmd+d",
+				"linux": "alt+d"
 			},
 			{
 				"command": "suitecloud.importobject",
@@ -102,6 +115,17 @@
 				"command": "suitecloud.compareobject",
 				"key": "ctrl+alt+c",
 				"mac": "ctrl+alt+c"
+			},
+			{
+				"command": "suitecloud.updateobject",
+				"key": "ctrl+alt+u",
+				"mac": "cmd+alt+u",
+				"when": "resource =~ //Objects/.+\\.xml$/"
+			},
+			{
+				"command": "suitecloud.uploadfile",
+				"key": "alt+shift+u",
+				"when": "resource =~ //FileCabinet/(SuiteScripts|Templates/(E-mail%20Templates|Marketing%20Templates)|Web%20Site%20Hosting%20Files|SuiteApps)/.+$/"
 			}
 		],
 		"menus": {
