@@ -1,7 +1,7 @@
 const assert = require('assert');
 const path = require('path');
 const { PROJECT_FOLDER_ARG } = require('../ApplicationConstants');
-const TESTING_FRAMEWORK_PATH = '@oracle/suitecloud-unit-testing';
+const TESTING_FRAMEWORK_PATH = '@jonarae/suitecloud-unit-testing';
 const CORE_STUBS_PATH = `${TESTING_FRAMEWORK_PATH}/stubs`;
 const nodeModulesToTransform = [CORE_STUBS_PATH].join('|');
 const SUITESCRIPT_FOLDER_REGEX = '^SuiteScripts(.*)$';
