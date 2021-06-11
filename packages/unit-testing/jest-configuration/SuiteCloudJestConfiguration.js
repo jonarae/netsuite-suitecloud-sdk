@@ -118,7 +118,7 @@ class SuiteCloudAdvancedJestConfiguration {
 				}
 			}
 		}
-		return path.join(process.cwd(), projectFolder);
+		return path.join(process.cwd()/*, projectFolder*/);
 	}
 
 	_getSuiteScriptFolderPath() {
